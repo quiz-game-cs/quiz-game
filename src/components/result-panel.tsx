@@ -76,12 +76,10 @@ export function ResultPanel({
             {roundScore > 0 ? "+" : ""}{roundScore}
           </span>
         </div>
-        {totalRounds > 1 && (
-          <div className="flex justify-between">
-            <span className="text-gray-400">누적 점수</span>
-            <span className="text-white font-bold">{totalScore}</span>
-          </div>
-        )}
+        <div className="flex justify-between">
+          <span className="text-gray-400">누적 점수</span>
+          <span className="text-white font-bold">{totalScore}</span>
+        </div>
       </div>
 
       <button
@@ -91,7 +89,7 @@ export function ResultPanel({
         {isGameOver
           ? totalRounds > 1
             ? "최종 결과 보기"
-            : "메인으로"
+            : "다음 문제"
           : `다음 문제 (${currentRound}/${totalRounds})`}
       </button>
     </div>

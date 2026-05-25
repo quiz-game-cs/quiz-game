@@ -6,9 +6,11 @@ import type { Question } from "@/lib/types";
 interface FinalResultProps {
   roundResults: Array<{ score: number; isCorrect: boolean | null; question: Question }>;
   totalScore: number;
+  onContinue: () => void;
+  rounds: number;
 }
 
-export function FinalResult({ roundResults, totalScore }: FinalResultProps) {
+export function FinalResult({ roundResults, totalScore, onContinue, rounds }: FinalResultProps) {
   const correctCount = roundResults.filter((r) => r.isCorrect === true).length;
 
   return (
@@ -52,12 +54,12 @@ export function FinalResult({ roundResults, totalScore }: FinalResultProps) {
         >
           메인으로
         </Link>
-        <Link
-          href="/play?rounds=10"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-colors"
+        <button
+          onClick={onContinue}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-colors cursor-pointer"
         >
-          다시 하기
-        </Link>
+          {rounds}문제 더 풀기
+        </button>
       </div>
     </div>
   );

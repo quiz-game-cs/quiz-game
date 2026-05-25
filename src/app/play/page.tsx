@@ -44,12 +44,19 @@ function PlayContent() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [state.phase, buzz]);
 
+  const loadNextSingle = useCallback(async () => {
+    setLoading(true);
+    const qs = await startGame(true);
+    questionsRef.current = qs;
+    setLoading(false);
+  }, [startGame]);
+
   const handleNext = useCallback(() => {
     if (state.isGameOver) {
       if (rounds > 1) {
         setShowFinal(true);
       } else {
-        router.push("/");
+        loadNextSingle();
       }
       return;
     }
@@ -59,7 +66,15 @@ function PlayContent() {
       setState((prev) => ({ ...prev, currentRound: prev.currentRound + 1 }));
       startRound(nextQ);
     }
-  }, [state.isGameOver, state.currentRound, rounds, router, startRound, setState]);
+  }, [state.isGameOver, state.currentRound, rounds, loadNextSingle, startRound, setState]);
+
+  const handleContinue = useCallback(async () => {
+    setShowFinal(false);
+    setLoading(true);
+    const qs = await startGame();
+    questionsRef.current = qs;
+    setLoading(false);
+  }, [startGame]);
 
   if (loading) {
     return (
@@ -75,6 +90,8 @@ function PlayContent() {
         <FinalResult
           roundResults={state.roundResults}
           totalScore={state.totalScore}
+          onContinue={handleContinue}
+          rounds={rounds}
         />
       </main>
     );
@@ -113,9 +130,7 @@ function PlayContent() {
             Q{state.currentRound} / {state.totalRounds}
           </div>
         )}
-        {rounds > 1 && (
-          <div className="text-gray-400 text-sm font-mono">{state.totalScore}점</div>
-        )}
+        <div className="text-gray-400 text-sm font-mono">{state.totalScore}점</div>
       </header>
 
       {/* Question */}

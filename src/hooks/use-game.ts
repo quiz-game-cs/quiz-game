@@ -147,11 +147,11 @@ export function useGame(totalRounds: number = 1) {
     [clearAllTimers, loadGhosts]
   );
 
-  const startGame = useCallback(async () => {
+  const startGame = useCallback(async (keepScore = false) => {
     const questionsData = await loadQuestion(totalRounds);
     setState((prev) => ({
       ...prev,
-      totalScore: 0,
+      totalScore: keepScore ? prev.totalScore : 0,
       currentRound: 1,
       roundResults: [],
       isGameOver: false,
