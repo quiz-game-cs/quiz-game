@@ -177,7 +177,6 @@ export function useGame(totalRounds: number = 1) {
           const left = Math.max(0, ANSWER_TIME_LIMIT_MS - (Date.now() - buzzTimeRef.current));
           if (left <= 0) {
             if (answerTimer.current) clearInterval(answerTimer.current);
-            return { ...s, answerTimeLeft: 0, phase: "answered", isCorrect: false };
           }
           return { ...s, answerTimeLeft: left };
         });
@@ -196,7 +195,7 @@ export function useGame(totalRounds: number = 1) {
   const submitAnswer = useCallback(
     (answer: string) => {
       setState((prev) => {
-        if (prev.phase !== "buzzed" || !prev.question) return prev;
+        if ((prev.phase !== "buzzed" && prev.phase !== "answered") || !prev.question) return prev;
 
         if (answerTimer.current) clearInterval(answerTimer.current);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface AnswerInputProps {
   onSubmit: (answer: string) => void;
@@ -14,6 +14,16 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export function AnswerInput({ onSubmit, timeLeft }: AnswerInputProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const submitted = useRef(false);
+
+  const doSubmit = useCallback(
+    (answer: string) => {
+      if (submitted.current) return;
+      submitted.current = true;
+      onSubmit(answer);
+    },
+    [onSubmit]
+  );
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -21,15 +31,13 @@ export function AnswerInput({ onSubmit, timeLeft }: AnswerInputProps) {
 
   useEffect(() => {
     if (timeLeft <= 0) {
-      onSubmit(value || "");
+      doSubmit(value || "");
     }
-  }, [timeLeft, onSubmit, value]);
+  }, [timeLeft, doSubmit, value]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (value.trim()) {
-      onSubmit(value);
-    }
+    doSubmit(value.trim() || "");
   };
 
   const progress = timeLeft / TOTAL_TIME;
@@ -74,7 +82,6 @@ export function AnswerInput({ onSubmit, timeLeft }: AnswerInputProps) {
         />
         <button
           type="submit"
-          disabled={!value.trim()}
           className="px-5 py-3 bg-yellow-500 hover:bg-yellow-400 disabled:bg-gray-700 disabled:text-gray-500
             text-black font-black rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
         >

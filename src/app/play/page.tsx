@@ -81,7 +81,7 @@ function PlayContent() {
       if (state.isCorrect === null) return "waiting";
       return state.isCorrect ? "correct" : "wrong";
     }
-    if (state.phase === "buzzed") return "buzzed";
+    if (state.phase === "buzzed" || state.phase === "answered") return "buzzed";
     return "waiting";
   };
 
@@ -191,7 +191,7 @@ function PlayContent() {
           </div>
         )}
 
-        {state.phase === "buzzed" && (
+        {(state.phase === "buzzed" || state.phase === "answered") && (
           <AnswerInput onSubmit={submitAnswer} timeLeft={state.answerTimeLeft} />
         )}
 
