@@ -5,10 +5,10 @@ import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { useGame } from "@/hooks/use-game";
 import { BuzzerButton } from "@/components/buzzer-button";
 import { AnswerInput } from "@/components/answer-input";
-import { GhostPanel } from "@/components/ghost-panel";
+import { PlayerArena } from "@/components/player-arena";
 import { ResultPanel } from "@/components/result-panel";
 import { FinalResult } from "@/components/final-result";
-import type { Question } from "@/lib/types";
+import type { Question, GhostState } from "@/lib/types";
 
 function PlayContent() {
   const searchParams = useSearchParams();
@@ -76,6 +76,15 @@ function PlayContent() {
     setLoading(false);
   }, [startGame]);
 
+  const derivePlayerStatus = (): GhostState["status"] | "idle" => {
+    if (state.phase === "result") {
+      if (state.isCorrect === null) return "waiting";
+      return state.isCorrect ? "correct" : "wrong";
+    }
+    if (state.phase === "buzzed") return "buzzed";
+    return "waiting";
+  };
+
   if (loading) {
     return (
       <main className="flex-1 flex items-center justify-center bg-gray-950 text-white">
@@ -115,82 +124,92 @@ function PlayContent() {
   const revealedText = state.question?.text?.slice(0, state.revealedCount) ?? "";
   const cursorVisible = state.phase === "revealing";
 
+  const fastestCorrectGhost = state.ghosts
+    .filter((g) => g.isCorrect)
+    .sort((a, b) => a.buzzTimeMs - b.buzzTimeMs)[0];
+  const isPlayerWinner =
+    state.phase === "result" &&
+    state.isCorrect === true &&
+    (state.buzzTimeMs != null && fastestCorrectGhost
+      ? state.buzzTimeMs < fastestCorrectGhost.buzzTimeMs
+      : true);
+
   return (
-    <main className="flex-1 flex flex-col bg-gray-950 text-white">
+    <main className="flex-1 flex flex-col bg-gray-950 text-white min-h-0">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-800/60">
         <button
           onClick={() => router.push("/")}
-          className="text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+          className="text-gray-600 hover:text-gray-300 text-sm transition-colors cursor-pointer"
         >
           ← 나가기
         </button>
         {rounds > 1 && (
-          <div className="text-gray-400 text-sm">
+          <div className="bg-gray-800/60 px-3 py-1 rounded-full text-xs font-mono text-gray-400">
             Q{state.currentRound} / {state.totalRounds}
           </div>
         )}
-        <div className="text-gray-400 text-sm font-mono">{state.totalScore}점</div>
+        <div className="bg-gray-800/60 px-3 py-1 rounded-full text-xs font-mono text-blue-400 font-bold">
+          {state.totalScore}점
+        </div>
       </header>
 
-      {/* Question */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
-        <div className="w-full max-w-2xl min-h-[120px] flex items-center justify-center">
-          <p className="text-2xl md:text-3xl font-bold text-center leading-relaxed">
+      {/* Question area */}
+      <section className="px-4 pt-5 pb-3">
+        <div className="w-full max-w-2xl mx-auto min-h-[80px] flex items-center justify-center">
+          <p className="text-xl md:text-2xl font-bold text-center leading-relaxed">
             {revealedText}
             {cursorVisible && (
-              <span className="inline-block w-[3px] h-8 bg-blue-400 ml-1 animate-pulse align-middle" />
+              <span className="inline-block w-[3px] h-7 bg-blue-400 ml-1 animate-pulse align-middle" />
             )}
           </p>
         </div>
+      </section>
 
-        {/* Ghost Panel */}
-        {state.ghosts.length > 0 && (
-          <div className="w-full max-w-md">
-            <GhostPanel ghosts={state.ghosts} />
+      {/* Player Arena */}
+      <section className="px-4 py-3">
+        <PlayerArena
+          ghosts={state.ghosts}
+          playerBuzzTimeMs={state.buzzTimeMs}
+          playerStatus={derivePlayerStatus()}
+          playerScoreChange={state.phase === "result" ? state.roundScore : null}
+          isPlayerWinner={isPlayerWinner}
+        />
+      </section>
+
+      {/* Action area */}
+      <section className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-4 min-h-0">
+        {state.phase === "revealing" && (
+          <div className="flex flex-col items-center gap-2">
+            <BuzzerButton onBuzz={buzz} disabled={false} />
+            <button
+              onClick={skipRound}
+              className="text-gray-600 hover:text-gray-400 text-xs transition-colors cursor-pointer mt-1"
+            >
+              패스
+            </button>
           </div>
         )}
 
-        {/* Buzzer / Answer Input / Result */}
-        <div className="flex flex-col items-center gap-4">
-          {state.phase === "revealing" && (
-            <>
-              <BuzzerButton onBuzz={buzz} disabled={false} />
-              <p className="text-gray-500 text-sm">
-                스페이스바 또는 버튼을 누르세요
-              </p>
-              <button
-                onClick={skipRound}
-                className="text-gray-600 hover:text-gray-400 text-xs transition-colors cursor-pointer"
-              >
-                패스
-              </button>
-            </>
-          )}
+        {state.phase === "buzzed" && (
+          <AnswerInput onSubmit={submitAnswer} timeLeft={state.answerTimeLeft} />
+        )}
 
-          {state.phase === "buzzed" && (
-            <AnswerInput
-              onSubmit={submitAnswer}
-              timeLeft={state.answerTimeLeft}
-            />
-          )}
-
-          {state.phase === "result" && state.question && (
-            <ResultPanel
-              isCorrect={state.isCorrect}
-              question={state.question}
-              buzzTimeMs={state.buzzTimeMs}
-              buzzCharIndex={state.buzzCharIndex}
-              ghosts={state.ghosts}
-              roundScore={state.roundScore}
-              totalScore={state.totalScore}
-              currentRound={state.currentRound}
-              totalRounds={state.totalRounds}
-              onNext={handleNext}
-              isGameOver={state.isGameOver}
-            />
-          )}
-        </div>
+        {state.phase === "result" && state.question && (
+          <ResultPanel
+            isCorrect={state.isCorrect}
+            question={state.question}
+            buzzTimeMs={state.buzzTimeMs}
+            buzzCharIndex={state.buzzCharIndex}
+            ghosts={state.ghosts}
+            roundScore={state.roundScore}
+            totalScore={state.totalScore}
+            currentRound={state.currentRound}
+            totalRounds={state.totalRounds}
+            onNext={handleNext}
+            isGameOver={state.isGameOver}
+          />
+        )}
       </section>
     </main>
   );

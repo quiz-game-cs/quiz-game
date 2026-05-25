@@ -7,6 +7,10 @@ interface AnswerInputProps {
   timeLeft: number;
 }
 
+const TOTAL_TIME = 5000;
+const RADIUS = 28;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
 export function AnswerInput({ onSubmit, timeLeft }: AnswerInputProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,30 +32,53 @@ export function AnswerInput({ onSubmit, timeLeft }: AnswerInputProps) {
     }
   };
 
+  const progress = timeLeft / TOTAL_TIME;
+  const dashOffset = CIRCUMFERENCE * (1 - progress);
   const seconds = Math.ceil(timeLeft / 1000);
-  const urgency = seconds <= 2;
+  const strokeColor = progress > 0.4 ? "#facc15" : "#ef4444";
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto space-y-3">
-      <div className={`text-center text-2xl font-mono font-bold ${urgency ? "text-red-400 animate-pulse" : "text-yellow-300"}`}>
-        {seconds}초
+    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+      {/* Circular timer */}
+      <div className="relative w-20 h-20">
+        <svg className="w-20 h-20 -rotate-90" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r={RADIUS} fill="none" stroke="#1f2937" strokeWidth="4" />
+          <circle
+            cx="32" cy="32" r={RADIUS} fill="none"
+            stroke={strokeColor}
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={dashOffset}
+            className="transition-all duration-100"
+          />
+        </svg>
+        <div className={`absolute inset-0 flex items-center justify-center text-2xl font-black font-mono
+          ${seconds <= 2 ? "text-red-400 animate-pulse" : "text-yellow-300"}`}>
+          {seconds}
+        </div>
       </div>
-      <div className="flex gap-2">
+
+      {/* Input */}
+      <div className="flex gap-2 w-full max-w-sm">
         <input
           ref={inputRef}
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="정답을 입력하세요"
-          className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white text-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          className="flex-1 px-4 py-3 bg-gray-800/80 border-2 border-gray-600 rounded-xl text-white text-lg
+            focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500/50
+            placeholder:text-gray-600"
           autoComplete="off"
         />
         <button
           type="submit"
           disabled={!value.trim()}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+          className="px-5 py-3 bg-yellow-500 hover:bg-yellow-400 disabled:bg-gray-700 disabled:text-gray-500
+            text-black font-black rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
         >
-          제출
+          GO
         </button>
       </div>
     </form>
