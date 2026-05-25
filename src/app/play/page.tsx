@@ -80,7 +80,22 @@ function PlayContent() {
     );
   }
 
-  const revealedText = state.question?.text.slice(0, state.revealedCount) ?? "";
+  if (state.phase === "idle" && !state.question) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center bg-gray-950 text-white gap-4">
+        <div className="text-xl text-gray-400">문제가 없습니다</div>
+        <p className="text-gray-500 text-sm">먼저 문제를 등록하거나 시드 데이터를 넣어주세요.</p>
+        <button
+          onClick={() => router.push("/")}
+          className="mt-4 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition-colors cursor-pointer"
+        >
+          메인으로
+        </button>
+      </main>
+    );
+  }
+
+  const revealedText = state.question?.text?.slice(0, state.revealedCount) ?? "";
   const cursorVisible = state.phase === "revealing";
 
   return (

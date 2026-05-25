@@ -62,8 +62,12 @@ export function useGame(totalRounds: number = 1) {
 
   const loadQuestion = useCallback(async (count: number = 1): Promise<Question[]> => {
     const res = await fetch(`/api/questions/random?count=${count}`);
+    if (!res.ok) return [];
     const data = await res.json();
-    return count === 1 ? [data] : data;
+    if (count === 1) {
+      return data?.text ? [data] : [];
+    }
+    return Array.isArray(data) ? data.filter((q: Question) => q?.text) : [];
   }, []);
 
   const loadGhosts = useCallback(async (questionId: string): Promise<Ghost[]> => {
