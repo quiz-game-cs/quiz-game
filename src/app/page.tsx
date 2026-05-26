@@ -47,7 +47,7 @@ export default function Home() {
         {/* Rules summary */}
         <div className="max-w-sm mx-auto text-gray-600 text-xs space-y-1 leading-relaxed">
           <p>🔔 버저 → 5초 안에 정답 입력</p>
-          <p>👻 3명의 과거 플레이어 기록과 대전</p>
+          <p>👻 3명의 고스트와 실시간 대전</p>
         </div>
 
         {/* Admin link */}
