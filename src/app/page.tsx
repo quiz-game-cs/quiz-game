@@ -12,7 +12,7 @@ export default function Home() {
           <p className="text-gray-400 text-base md:text-lg max-w-md mx-auto">
             문제가 한 글자씩 공개됩니다.
             <br className="hidden md:block" />
-            고스트보다 빨리 버저를 누르세요!
+            누구보다 빨리 버저를 누르고 정답을 맞춰보세요!
           </p>
         </div>
 
