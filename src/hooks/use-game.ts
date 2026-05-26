@@ -6,7 +6,7 @@ import { checkAnswer, normalizeAnswer } from "@/lib/normalize";
 import { calculateRoundScore } from "@/lib/scoring";
 
 const CHAR_INTERVAL_MS = 120;
-const ANSWER_TIME_LIMIT_MS = 5000;
+const ANSWER_TIME_LIMIT_MS = 10000;
 const GHOST_BUZZ_DELAY_MS = 1500;
 const GHOST_RESULT_DELAY_MS = 1000;
 
