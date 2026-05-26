@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "하야오시 퀴즈",
-  description: "고스트 대전 하야오시 퀴즈 게임",
+  title: "퀴즈퀴즈야",
+  description: "고스트 대전 퀴즈퀴즈야 게임",
 };
 
 export default function RootLayout({

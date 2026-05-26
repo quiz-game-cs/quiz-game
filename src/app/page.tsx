@@ -7,7 +7,7 @@ export default function Home() {
         {/* Title */}
         <div className="space-y-3">
           <h1 className="text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-red-400 to-purple-500 bg-clip-text text-transparent">
-            ⚡ 하야오시 퀴즈
+            ⚡ 퀴즈퀴즈야
           </h1>
           <p className="text-gray-400 text-base md:text-lg max-w-md mx-auto">
             문제가 한 글자씩 공개됩니다.
