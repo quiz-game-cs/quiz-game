@@ -48,6 +48,7 @@ export default function Home() {
         <div className="max-w-sm mx-auto text-gray-600 text-xs space-y-1 leading-relaxed">
           <p>🔔 버저 → 5초 안에 정답 입력</p>
           <p>👻 3명의 고스트와 실시간 대전</p>
+          <p>🏆 4명 중 1등을 노려보세요!</p>
         </div>
 
         {/* Admin link */}
