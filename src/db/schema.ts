@@ -1,10 +1,17 @@
 import { pgTable, uuid, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const questions = pgTable("questions", {
   id: uuid("id").defaultRandom().primaryKey(),
   text: text("text").notNull(),
   answers: text("answers").array().notNull(),
-  category: text("category"),
+  categoryId: uuid("category_id").references(() => categories.id),
   difficulty: integer("difficulty").default(1),
   status: text("status").default("approved"),
   createdAt: timestamp("created_at").defaultNow(),

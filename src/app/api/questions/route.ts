@@ -5,7 +5,7 @@ import { questions } from "@/db/schema";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { text, answers, category, difficulty } = body;
+    const { text, answers, categoryId, difficulty } = body;
 
     if (!text || !answers || !Array.isArray(answers) || answers.length === 0) {
       return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       .values({
         text,
         answers,
-        category: category ?? null,
+        categoryId: categoryId ?? null,
         difficulty: difficulty ?? 1,
       })
       .returning();

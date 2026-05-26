@@ -1,6 +1,7 @@
 "use client";
 
 import type { GhostState } from "@/lib/types";
+import { getRankEmoji } from "@/lib/ranking";
 
 export type PlayerType = "player" | "ghost";
 
@@ -9,9 +10,9 @@ export interface PlayerCardProps {
   type: PlayerType;
   colorIndex: number;
   status: GhostState["status"] | "idle";
-  buzzTimeMs?: number | null;
+  buzzCharIndex?: number | null;
   scoreChange?: number | null;
-  isWinner?: boolean;
+  rank?: number | null;
 }
 
 const COLORS = [
@@ -22,11 +23,11 @@ const COLORS = [
 ];
 
 const STATUS_CONFIG = {
-  idle: { label: "대기", icon: "⏳", extra: "" },
-  waiting: { label: "대기", icon: "⏳", extra: "" },
-  buzzed: { label: "버저!", icon: "🔔", extra: "animate-shake" },
-  correct: { label: "정답!", icon: "✅", extra: "animate-glow-green" },
-  wrong: { label: "오답", icon: "❌", extra: "animate-glow-red" },
+  idle: { label: "대기", icon: "⏳" },
+  waiting: { label: "대기", icon: "⏳" },
+  buzzed: { label: "버저!", icon: "🔔" },
+  correct: { label: "정답!", icon: "✅" },
+  wrong: { label: "오답", icon: "❌" },
 };
 
 export function PlayerCard({
@@ -34,9 +35,9 @@ export function PlayerCard({
   type,
   colorIndex,
   status,
-  buzzTimeMs,
+  buzzCharIndex,
   scoreChange,
-  isWinner,
+  rank,
 }: PlayerCardProps) {
   const color = COLORS[colorIndex % COLORS.length];
   const statusCfg = STATUS_CONFIG[status];
@@ -53,12 +54,14 @@ export function PlayerCard({
         ${status === "buzzed" ? "animate-shake" : ""}
         ${status === "correct" ? "animate-glow-green" : ""}
         ${status === "wrong" ? "animate-glow-red" : ""}
-        ${isWinner ? "animate-glow-gold" : ""}
+        ${rank === 1 ? "animate-glow-gold" : ""}
       `}
     >
-      {/* Winner crown */}
-      {isWinner && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">👑</div>
+      {/* Rank badge */}
+      {rank != null && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg">
+          {getRankEmoji(rank)}
+        </div>
       )}
 
       {/* Score float */}
@@ -92,10 +95,10 @@ export function PlayerCard({
           {statusCfg.label}
         </div>
 
-        {/* Buzz timing */}
-        {buzzTimeMs != null && status !== "waiting" && status !== "idle" && (
+        {/* Buzz char index */}
+        {buzzCharIndex != null && status !== "waiting" && status !== "idle" && (
           <div className="text-[10px] text-gray-400 font-mono">
-            {(buzzTimeMs / 1000).toFixed(1)}s
+            {buzzCharIndex}글자
           </div>
         )}
       </div>

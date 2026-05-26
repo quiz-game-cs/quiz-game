@@ -2,18 +2,26 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { Question } from "@/lib/types";
+import type { Question, Category } from "@/lib/types";
 
 export default function AdminQuestionsPage() {
   const [text, setText] = useState("");
   const [answers, setAnswers] = useState<string[]>([""]);
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [difficulty, setDifficulty] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setCategoriesList(data);
+      })
+      .catch(() => {});
+
     fetch("/api/questions/random?count=20")
       .then((r) => r.json())
       .then((data) => {
@@ -47,17 +55,18 @@ export default function AdminQuestionsPage() {
         body: JSON.stringify({
           text: text.trim(),
           answers: validAnswers,
-          category: category.trim() || null,
+          categoryId: categoryId || null,
           difficulty,
         }),
       });
 
       if (res.ok) {
         const q = await res.json();
-        setQuestions((prev) => [q, ...prev]);
+        const cat = categoriesList.find((c) => c.id === categoryId);
+        setQuestions((prev) => [{ ...q, categoryName: cat?.name ?? null }, ...prev]);
         setText("");
         setAnswers([""]);
-        setCategory("");
+        setCategoryId("");
         setDifficulty(1);
         setMessage("문제가 등록되었습니다!");
       } else {
@@ -132,13 +141,18 @@ export default function AdminQuestionsPage() {
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">카테고리</label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                placeholder="과학"
-              />
+              >
+                <option value="">미분류</option>
+                {categoriesList.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="w-32">
               <label className="block text-sm text-gray-400 mb-1">난이도</label>
@@ -191,9 +205,9 @@ export default function AdminQuestionsPage() {
                         {a}
                       </span>
                     ))}
-                    {q.category && (
+                    {q.categoryName && (
                       <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded">
-                        {q.category}
+                        {q.categoryName}
                       </span>
                     )}
                   </div>

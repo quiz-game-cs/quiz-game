@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { questions } from "@/db/schema";
+import { questions, categories } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
@@ -11,8 +11,17 @@ export async function GET(request: NextRequest) {
     );
 
     const rows = await db
-      .select()
+      .select({
+        id: questions.id,
+        text: questions.text,
+        answers: questions.answers,
+        categoryId: questions.categoryId,
+        categoryName: categories.name,
+        difficulty: questions.difficulty,
+        status: questions.status,
+      })
       .from(questions)
+      .leftJoin(categories, eq(questions.categoryId, categories.id))
       .where(eq(questions.status, "approved"))
       .orderBy(sql`random()`)
       .limit(count);

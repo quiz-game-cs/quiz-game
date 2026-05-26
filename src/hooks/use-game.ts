@@ -7,12 +7,15 @@ import { calculateRoundScore } from "@/lib/scoring";
 
 const CHAR_INTERVAL_MS = 120;
 const ANSWER_TIME_LIMIT_MS = 5000;
+const GHOST_BUZZ_DELAY_MS = 1500;
+const GHOST_RESULT_DELAY_MS = 1000;
 
 interface GameState {
   phase: GamePhase;
   question: Question | null;
   revealedCount: number;
   ghosts: GhostState[];
+  activeGhostIdx: number | null;
   buzzTimeMs: number | null;
   buzzCharIndex: number | null;
   answerTimeLeft: number;
@@ -31,6 +34,7 @@ export function useGame(totalRounds: number = 1) {
     question: null,
     revealedCount: 0,
     ghosts: [],
+    activeGhostIdx: null,
     buzzTimeMs: null,
     buzzCharIndex: null,
     answerTimeLeft: ANSWER_TIME_LIMIT_MS,
@@ -45,15 +49,19 @@ export function useGame(totalRounds: number = 1) {
 
   const revealTimer = useRef<ReturnType<typeof setInterval>>(null);
   const answerTimer = useRef<ReturnType<typeof setInterval>>(null);
-  const ghostTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const ghostPhaseTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const startTimeRef = useRef<number>(0);
   const buzzTimeRef = useRef<number>(0);
+  const ghostBuzzQueue = useRef<{ idx: number; charIndex: number }[]>([]);
+  const processedGhostChars = useRef<Set<string>>(new Set());
 
   const clearAllTimers = useCallback(() => {
     if (revealTimer.current) clearInterval(revealTimer.current);
     if (answerTimer.current) clearInterval(answerTimer.current);
-    ghostTimers.current.forEach(clearTimeout);
-    ghostTimers.current = [];
+    if (ghostPhaseTimer.current) clearTimeout(ghostPhaseTimer.current);
+    revealTimer.current = null;
+    answerTimer.current = null;
+    ghostPhaseTimer.current = null;
   }, []);
 
   useEffect(() => {
@@ -84,6 +92,74 @@ export function useGame(totalRounds: number = 1) {
     });
   }, []);
 
+  // Stable ref to a function that starts/resumes character reveal with ghost interrupt support.
+  // We use a ref to break the circular dependency between startRevealing and itself (via setTimeout callbacks).
+  const startRevealingRef = useRef<() => void>(() => {});
+
+  const startRevealingImpl = () => {
+    setState((prev) => {
+      if (prev.phase === "ghost-buzzing") {
+        return { ...prev, phase: "revealing", activeGhostIdx: null };
+      }
+      return prev;
+    });
+
+    revealTimer.current = setInterval(() => {
+      setState((prev) => {
+        if (prev.phase !== "revealing") return prev;
+        const next = prev.revealedCount + 1;
+
+        const matchingGhost = ghostBuzzQueue.current.find((g) => {
+          const key = `${g.idx}-${g.charIndex}`;
+          return g.charIndex === next && !processedGhostChars.current.has(key);
+        });
+
+        if (matchingGhost) {
+          if (revealTimer.current) clearInterval(revealTimer.current);
+          revealTimer.current = null;
+          const key = `${matchingGhost.idx}-${matchingGhost.charIndex}`;
+          processedGhostChars.current.add(key);
+
+          const updated = [...prev.ghosts];
+          updated[matchingGhost.idx] = { ...updated[matchingGhost.idx], status: "buzzed" };
+
+          ghostPhaseTimer.current = setTimeout(() => {
+            setState((s) => {
+              const g = [...s.ghosts];
+              g[matchingGhost.idx] = {
+                ...g[matchingGhost.idx],
+                status: g[matchingGhost.idx].isCorrect ? "correct" : "wrong",
+              };
+              return { ...s, ghosts: g };
+            });
+
+            ghostPhaseTimer.current = setTimeout(() => {
+              startRevealingRef.current();
+            }, GHOST_RESULT_DELAY_MS);
+          }, GHOST_BUZZ_DELAY_MS);
+
+          return {
+            ...prev,
+            revealedCount: next,
+            phase: "ghost-buzzing",
+            activeGhostIdx: matchingGhost.idx,
+            ghosts: updated,
+          };
+        }
+
+        if (next >= (prev.question?.text.length ?? 0)) {
+          if (revealTimer.current) clearInterval(revealTimer.current);
+          revealTimer.current = null;
+        }
+        return { ...prev, revealedCount: next };
+      });
+    }, CHAR_INTERVAL_MS);
+  };
+
+  useEffect(() => {
+    startRevealingRef.current = startRevealingImpl;
+  });
+
   const startRound = useCallback(
     async (question: Question) => {
       clearAllTimers();
@@ -94,12 +170,18 @@ export function useGame(totalRounds: number = 1) {
         status: "waiting" as const,
       }));
 
+      ghostBuzzQueue.current = ghosts
+        .map((g, idx) => ({ idx, charIndex: g.buzzCharIndex }))
+        .sort((a, b) => a.charIndex - b.charIndex);
+      processedGhostChars.current = new Set();
+
       setState((prev) => ({
         ...prev,
         phase: "revealing",
         question,
         revealedCount: 0,
         ghosts: ghostStates,
+        activeGhostIdx: null,
         buzzTimeMs: null,
         buzzCharIndex: null,
         answerTimeLeft: ANSWER_TIME_LIMIT_MS,
@@ -111,38 +193,54 @@ export function useGame(totalRounds: number = 1) {
 
       revealTimer.current = setInterval(() => {
         setState((prev) => {
+          if (prev.phase !== "revealing") return prev;
           const next = prev.revealedCount + 1;
+
+          const matchingGhost = ghostBuzzQueue.current.find((g) => {
+            const key = `${g.idx}-${g.charIndex}`;
+            return g.charIndex === next && !processedGhostChars.current.has(key);
+          });
+
+          if (matchingGhost) {
+            if (revealTimer.current) clearInterval(revealTimer.current);
+            revealTimer.current = null;
+            const key = `${matchingGhost.idx}-${matchingGhost.charIndex}`;
+            processedGhostChars.current.add(key);
+
+            const updated = [...prev.ghosts];
+            updated[matchingGhost.idx] = { ...updated[matchingGhost.idx], status: "buzzed" };
+
+            ghostPhaseTimer.current = setTimeout(() => {
+              setState((s) => {
+                const g = [...s.ghosts];
+                g[matchingGhost.idx] = {
+                  ...g[matchingGhost.idx],
+                  status: g[matchingGhost.idx].isCorrect ? "correct" : "wrong",
+                };
+                return { ...s, ghosts: g };
+              });
+
+              ghostPhaseTimer.current = setTimeout(() => {
+                startRevealingRef.current();
+              }, GHOST_RESULT_DELAY_MS);
+            }, GHOST_BUZZ_DELAY_MS);
+
+            return {
+              ...prev,
+              revealedCount: next,
+              phase: "ghost-buzzing",
+              activeGhostIdx: matchingGhost.idx,
+              ghosts: updated,
+            };
+          }
+
           if (next >= (prev.question?.text.length ?? 0)) {
             if (revealTimer.current) clearInterval(revealTimer.current);
+            revealTimer.current = null;
           }
           return { ...prev, revealedCount: next };
         });
       }, CHAR_INTERVAL_MS);
-
-      ghostStates.forEach((ghost, idx) => {
-        const timer = setTimeout(() => {
-          setState((prev) => {
-            const updated = [...prev.ghosts];
-            updated[idx] = {
-              ...updated[idx],
-              status: updated[idx].isCorrect ? "correct" : "wrong",
-            };
-            return { ...prev, ghosts: updated };
-          });
-        }, ghost.buzzTimeMs);
-        ghostTimers.current.push(timer);
-
-        const buzzerVisual = setTimeout(() => {
-          setState((prev) => {
-            const updated = [...prev.ghosts];
-            if (updated[idx].status === "waiting") {
-              updated[idx] = { ...updated[idx], status: "buzzed" };
-            }
-            return { ...prev, ghosts: updated };
-          });
-        }, ghost.buzzTimeMs - 300);
-        ghostTimers.current.push(buzzerVisual);
-      });
     },
     [clearAllTimers, loadGhosts]
   );
@@ -166,7 +264,7 @@ export function useGame(totalRounds: number = 1) {
     setState((prev) => {
       if (prev.phase !== "revealing") return prev;
 
-      if (revealTimer.current) clearInterval(revealTimer.current);
+      clearAllTimers();
 
       const now = Date.now();
       const buzzMs = now - startTimeRef.current;
@@ -188,9 +286,10 @@ export function useGame(totalRounds: number = 1) {
         buzzTimeMs: buzzMs,
         buzzCharIndex: prev.revealedCount,
         answerTimeLeft: ANSWER_TIME_LIMIT_MS,
+        activeGhostIdx: null,
       };
     });
-  }, []);
+  }, [clearAllTimers]);
 
   const submitAnswer = useCallback(
     (answer: string) => {
@@ -204,12 +303,12 @@ export function useGame(totalRounds: number = 1) {
 
         const fastestCorrectGhost = prev.ghosts
           .filter((g) => g.isCorrect)
-          .sort((a, b) => a.buzzTimeMs - b.buzzTimeMs)[0];
+          .sort((a, b) => a.buzzCharIndex - b.buzzCharIndex)[0];
 
         const score = calculateRoundScore({
           isCorrect: correct,
-          playerBuzzTimeMs: prev.buzzTimeMs,
-          fastestCorrectGhostBuzzTimeMs: fastestCorrectGhost?.buzzTimeMs ?? null,
+          playerBuzzCharIndex: prev.buzzCharIndex,
+          fastestCorrectGhostBuzzCharIndex: fastestCorrectGhost?.buzzCharIndex ?? null,
         });
 
         const newResults = [
@@ -227,6 +326,13 @@ export function useGame(totalRounds: number = 1) {
           normalizedAnswer: normalizeAnswer(answer),
         });
 
+        const updatedGhosts = prev.ghosts.map((g) => {
+          if (g.status === "waiting") {
+            return { ...g, status: (g.isCorrect ? "correct" : "wrong") as GhostState["status"] };
+          }
+          return g;
+        });
+
         return {
           ...prev,
           phase: "result",
@@ -235,6 +341,8 @@ export function useGame(totalRounds: number = 1) {
           totalScore: prev.totalScore + score,
           roundResults: newResults,
           isGameOver: prev.currentRound >= prev.totalRounds,
+          ghosts: updatedGhosts,
+          activeGhostIdx: null,
         };
       });
     },
@@ -262,6 +370,13 @@ export function useGame(totalRounds: number = 1) {
         normalizedAnswer: "",
       });
 
+      const updatedGhosts = prev.ghosts.map((g) => {
+        if (g.status === "waiting") {
+          return { ...g, status: (g.isCorrect ? "correct" : "wrong") as GhostState["status"] };
+        }
+        return g;
+      });
+
       return {
         ...prev,
         phase: "result",
@@ -269,6 +384,8 @@ export function useGame(totalRounds: number = 1) {
         roundScore: 0,
         roundResults: newResults,
         isGameOver: prev.currentRound >= prev.totalRounds,
+        ghosts: updatedGhosts,
+        activeGhostIdx: null,
       };
     });
   }, [clearAllTimers, saveRecord]);

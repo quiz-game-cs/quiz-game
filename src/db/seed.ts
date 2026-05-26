@@ -2,9 +2,27 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { questions, playRecords } from "./schema";
+import { questions, playRecords, categories } from "./schema";
 
 const CHAR_INTERVAL_MS = 120;
+
+const SEED_CATEGORIES = [
+  { name: "역사", displayOrder: 1 },
+  { name: "과학", displayOrder: 2 },
+  { name: "지리", displayOrder: 3 },
+  { name: "문학", displayOrder: 4 },
+  { name: "예술", displayOrder: 5 },
+  { name: "수학", displayOrder: 6 },
+  { name: "스포츠", displayOrder: 7 },
+  { name: "문화", displayOrder: 8 },
+  { name: "IT", displayOrder: 9 },
+  { name: "영화", displayOrder: 10 },
+  { name: "엔터테인먼트", displayOrder: 11 },
+  { name: "음식", displayOrder: 12 },
+  { name: "동물", displayOrder: 13 },
+  { name: "게임", displayOrder: 14 },
+  { name: "만화", displayOrder: 15 },
+];
 
 const SEED_QUESTIONS = [
   // ── 역사 ──
@@ -357,15 +375,28 @@ async function seed() {
   console.log("기존 데이터 초기화...");
   await db.delete(playRecords);
   await db.delete(questions);
+  await db.delete(categories);
 
-  console.log("시드 데이터 삽입 시작...");
+  console.log("카테고리 시드 삽입...");
+  const categoryMap = new Map<string, string>();
+  for (const cat of SEED_CATEGORIES) {
+    const [inserted] = await db.insert(categories).values(cat).returning();
+    categoryMap.set(cat.name, inserted.id);
+    console.log(`  카테고리 추가: ${cat.name}`);
+  }
 
+  console.log("문제 시드 삽입...");
   for (const q of SEED_QUESTIONS) {
-    const [inserted] = await db.insert(questions).values(q).returning();
+    const categoryId = categoryMap.get(q.category) ?? null;
+    const [inserted] = await db.insert(questions).values({
+      text: q.text,
+      answers: q.answers,
+      categoryId,
+      difficulty: q.difficulty,
+    }).returning();
     console.log(`  문제 추가: ${q.text.slice(0, 30)}...`);
 
     const len = q.text.length;
-
     const ghostProfiles = [
       { name: "고스트A", ratio: 0.25, correctRate: 0.85 },
       { name: "고스트B", ratio: 0.5, correctRate: 0.7 },
@@ -389,7 +420,7 @@ async function seed() {
     }
   }
 
-  console.log(`\n완료! 문제 ${SEED_QUESTIONS.length}개, 고스트 ${SEED_QUESTIONS.length * 3}개 삽입.`);
+  console.log(`\n완료! 카테고리 ${SEED_CATEGORIES.length}개, 문제 ${SEED_QUESTIONS.length}개, 고스트 ${SEED_QUESTIONS.length * 3}개 삽입.`);
 }
 
 seed().catch(console.error);

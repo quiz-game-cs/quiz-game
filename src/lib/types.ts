@@ -1,8 +1,15 @@
+export interface Category {
+  id: string;
+  name: string;
+  displayOrder: number;
+}
+
 export interface Question {
   id: string;
   text: string;
   answers: string[];
-  category: string | null;
+  categoryId: string | null;
+  categoryName?: string | null;
   difficulty: number | null;
 }
 
@@ -19,7 +26,7 @@ export interface GhostState extends Ghost {
   status: GhostStatus;
 }
 
-export type GamePhase = "idle" | "revealing" | "buzzed" | "answered" | "result";
+export type GamePhase = "idle" | "revealing" | "ghost-buzzing" | "buzzed" | "answered" | "result";
 
 export interface PlayRecord {
   questionId: string;

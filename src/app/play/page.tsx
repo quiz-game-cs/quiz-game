@@ -8,6 +8,7 @@ import { AnswerInput } from "@/components/answer-input";
 import { PlayerArena } from "@/components/player-arena";
 import { ResultPanel } from "@/components/result-panel";
 import { FinalResult } from "@/components/final-result";
+import { calculateRanking } from "@/lib/ranking";
 import type { Question, GhostState } from "@/lib/types";
 
 function PlayContent() {
@@ -85,6 +86,11 @@ function PlayContent() {
     return "waiting";
   };
 
+  const ranking =
+    state.phase === "result"
+      ? calculateRanking(state.isCorrect, state.buzzCharIndex, state.ghosts)
+      : null;
+
   if (loading) {
     return (
       <main className="flex-1 flex items-center justify-center bg-gray-950 text-white">
@@ -123,16 +129,7 @@ function PlayContent() {
 
   const revealedText = state.question?.text?.slice(0, state.revealedCount) ?? "";
   const cursorVisible = state.phase === "revealing";
-
-  const fastestCorrectGhost = state.ghosts
-    .filter((g) => g.isCorrect)
-    .sort((a, b) => a.buzzTimeMs - b.buzzTimeMs)[0];
-  const isPlayerWinner =
-    state.phase === "result" &&
-    state.isCorrect === true &&
-    (state.buzzTimeMs != null && fastestCorrectGhost
-      ? state.buzzTimeMs < fastestCorrectGhost.buzzTimeMs
-      : true);
+  const isGhostBuzzing = state.phase === "ghost-buzzing";
 
   return (
     <main className="flex-1 flex flex-col bg-gray-950 text-white min-h-0">
@@ -162,6 +159,9 @@ function PlayContent() {
             {cursorVisible && (
               <span className="inline-block w-[3px] h-7 bg-blue-400 ml-1 animate-pulse align-middle" />
             )}
+            {isGhostBuzzing && (
+              <span className="inline-block w-[3px] h-7 bg-yellow-400 ml-1 align-middle" />
+            )}
           </p>
         </div>
       </section>
@@ -170,10 +170,11 @@ function PlayContent() {
       <section className="px-4 py-3">
         <PlayerArena
           ghosts={state.ghosts}
-          playerBuzzTimeMs={state.buzzTimeMs}
+          playerBuzzCharIndex={state.buzzCharIndex}
           playerStatus={derivePlayerStatus()}
           playerScoreChange={state.phase === "result" ? state.roundScore : null}
-          isPlayerWinner={isPlayerWinner}
+          ranking={ranking}
+          activeGhostIdx={state.activeGhostIdx}
         />
       </section>
 
@@ -191,6 +192,15 @@ function PlayContent() {
           </div>
         )}
 
+        {isGhostBuzzing && state.activeGhostIdx != null && (
+          <div className="text-center space-y-2">
+            <div className="text-yellow-300 font-black text-lg animate-pulse">
+              🔔 {state.ghosts[state.activeGhostIdx]?.userName} 도전 중...
+            </div>
+            <div className="text-gray-500 text-xs">잠시 대기</div>
+          </div>
+        )}
+
         {(state.phase === "buzzed" || state.phase === "answered") && (
           <AnswerInput onSubmit={submitAnswer} timeLeft={state.answerTimeLeft} />
         )}
@@ -199,7 +209,6 @@ function PlayContent() {
           <ResultPanel
             isCorrect={state.isCorrect}
             question={state.question}
-            buzzTimeMs={state.buzzTimeMs}
             buzzCharIndex={state.buzzCharIndex}
             ghosts={state.ghosts}
             roundScore={state.roundScore}

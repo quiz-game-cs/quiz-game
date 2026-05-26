@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { playRecords, questions } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { generateSeedGhosts } from "@/lib/ghost";
 
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
       .select()
       .from(playRecords)
       .where(and(eq(playRecords.questionId, id), eq(playRecords.isCorrect, true)))
-      .orderBy(desc(playRecords.createdAt))
+      .orderBy(asc(playRecords.buzzCharIndex))
       .limit(3);
 
     if (correctRecords.length >= 3) {
@@ -33,7 +33,7 @@ export async function GET(
       .select()
       .from(playRecords)
       .where(eq(playRecords.questionId, id))
-      .orderBy(desc(playRecords.createdAt))
+      .orderBy(asc(playRecords.buzzCharIndex))
       .limit(3);
 
     if (allRecords.length >= 3) {
