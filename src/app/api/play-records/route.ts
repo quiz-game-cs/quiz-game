@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       questionId,
+      userId,
       userName,
       buzzTimeMs,
       buzzCharIndex,
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
       .insert(playRecords)
       .values({
         questionId,
+        userId: userId ?? null,
         userName: userName || "익명",
         buzzTimeMs: buzzTimeMs ?? null,
         buzzCharIndex: buzzCharIndex ?? null,

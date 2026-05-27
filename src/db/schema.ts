@@ -17,6 +17,12 @@ export const questions = pgTable("questions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  nickname: text("nickname").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const playRecords = pgTable(
   "play_records",
   {
@@ -24,6 +30,7 @@ export const playRecords = pgTable(
     questionId: uuid("question_id")
       .notNull()
       .references(() => questions.id),
+    userId: uuid("user_id").references(() => users.id),
     userName: text("user_name"),
     buzzTimeMs: integer("buzz_time_ms"),
     buzzCharIndex: integer("buzz_char_index"),
@@ -36,5 +43,6 @@ export const playRecords = pgTable(
     index("idx_play_records_question_id").on(table.questionId),
     index("idx_play_records_question_correct").on(table.questionId, table.isCorrect),
     index("idx_play_records_created_at").on(table.createdAt),
+    index("idx_play_records_user_id").on(table.userId),
   ]
 );

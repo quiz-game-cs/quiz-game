@@ -4,6 +4,12 @@ export interface Category {
   displayOrder: number;
 }
 
+export interface User {
+  id: string;
+  nickname: string;
+  createdAt: string;
+}
+
 export interface Question {
   id: string;
   text: string;
