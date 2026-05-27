@@ -44,6 +44,18 @@ export default function Home() {
               고스트와 정식 대결
             </span>
           </Link>
+          <Link
+            href="/solo"
+            className="group relative block px-8 py-5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600
+              rounded-2xl text-lg font-black transition-all text-center
+              shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/40 hover:scale-[1.02]"
+          >
+            <span className="text-2xl mr-2">📝</span>
+            솔로 연습
+            <span className="block text-xs font-normal text-emerald-200/60 mt-1">
+              혼자 풀고 닉네임으로 기록 쌓기
+            </span>
+          </Link>
         </div>
 
         {/* Rules summary */}

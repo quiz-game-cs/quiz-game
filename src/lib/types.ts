@@ -36,6 +36,7 @@ export type GamePhase = "idle" | "revealing" | "ghost-buzzing" | "buzzed" | "ans
 
 export interface PlayRecord {
   questionId: string;
+  userId?: string | null;
   userName: string;
   buzzTimeMs: number | null;
   buzzCharIndex: number | null;
