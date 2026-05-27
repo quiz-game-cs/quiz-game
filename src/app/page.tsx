@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { NicknameHeader } from "@/components/nickname-header";
 
 export default function Home() {
   return (
     <main className="flex-1 flex items-center justify-center bg-gray-950 text-white">
+      <NicknameHeader />
       <div className="text-center space-y-10 px-6">
         {/* Title */}
         <div className="space-y-3">
