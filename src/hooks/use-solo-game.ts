@@ -6,7 +6,7 @@ import { checkAnswer, normalizeAnswer } from "@/lib/normalize";
 
 const CHAR_INTERVAL_MS = 120;
 const ANSWER_TIME_LIMIT_MS = 5000;
-const AUTO_PASS_DELAY_MS = 3000;
+const AUTO_PASS_DELAY_MS = 5000;
 
 export type SoloPhase = "idle" | "revealing" | "awaiting-buzz" | "buzzed" | "answered" | "result";
 

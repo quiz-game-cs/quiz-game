@@ -8,7 +8,10 @@ import { NicknameHeader } from "@/components/nickname-header";
 import { BuzzerButton } from "@/components/buzzer-button";
 import { AnswerInput } from "@/components/answer-input";
 import { SoloArena } from "@/components/solo-arena";
+import { AutoPassBar } from "@/components/auto-pass-bar";
 import type { GhostState } from "@/lib/types";
+
+const AUTO_PASS_TOTAL_MS = 5000;
 
 export default function SoloPage() {
   const router = useRouter();
@@ -79,7 +82,6 @@ export default function SoloPage() {
   const revealedText = state.question.text.slice(0, state.revealedCount);
   const cursorVisible = state.phase === "revealing";
   const showAutoPassCountdown = state.phase === "awaiting-buzz";
-  const autoPassSeconds = Math.ceil(state.autoPassTimeLeft / 1000);
   const playerName = user?.nickname ?? "나";
   const accuracy =
     state.totalPlayed > 0 ? Math.round((state.totalCorrect / state.totalPlayed) * 100) : null;
@@ -102,8 +104,13 @@ export default function SoloPage() {
         </div>
       </header>
 
-      {/* Question */}
-      <section className="px-4 pt-5 pb-3">
+      {/* Question + auto-pass bar */}
+      <section className="px-4 pt-5 pb-3 flex flex-col gap-3">
+        <div className="h-2.5">
+          {showAutoPassCountdown && (
+            <AutoPassBar timeLeftMs={state.autoPassTimeLeft} totalMs={AUTO_PASS_TOTAL_MS} />
+          )}
+        </div>
         <div className="w-full max-w-2xl mx-auto min-h-[80px] flex items-center justify-center">
           <p className="text-xl md:text-2xl font-bold text-center leading-relaxed">
             {revealedText}
@@ -129,11 +136,6 @@ export default function SoloPage() {
         {(state.phase === "revealing" || state.phase === "awaiting-buzz") && (
           <div className="flex flex-col items-center gap-2">
             <BuzzerButton onBuzz={buzz} disabled={false} />
-            {showAutoPassCountdown && (
-              <div className="text-yellow-300 font-bold text-sm animate-pulse">
-                {autoPassSeconds}초 안에 부저를 누르세요
-              </div>
-            )}
             <button
               onClick={skipRound}
               className="text-gray-600 hover:text-gray-400 text-xs transition-colors cursor-pointer mt-1"
