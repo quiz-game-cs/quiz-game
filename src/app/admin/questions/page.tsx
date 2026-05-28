@@ -63,7 +63,7 @@ export default function AdminQuestionsPage() {
       if (res.ok) {
         const q = await res.json();
         const cat = categoriesList.find((c) => c.id === categoryId);
-        setQuestions((prev) => [{ ...q, categoryName: cat?.name ?? null }, ...prev]);
+        setQuestions((prev) => [{ ...q, categoryName: cat?.minorName ?? null }, ...prev]);
         setText("");
         setAnswers([""]);
         setCategoryId("");
@@ -149,7 +149,7 @@ export default function AdminQuestionsPage() {
                 <option value="">미분류</option>
                 {categoriesList.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name}
+                    {cat.majorName} / {cat.minorName}
                   </option>
                 ))}
               </select>

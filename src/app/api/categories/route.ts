@@ -8,7 +8,7 @@ export async function GET() {
     const rows = await db
       .select()
       .from(categories)
-      .orderBy(asc(categories.displayOrder), asc(categories.name));
+      .orderBy(asc(categories.displayOrder), asc(categories.code));
 
     return NextResponse.json(rows);
   } catch (error) {
@@ -20,15 +20,27 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, displayOrder } = body;
+    const { code, majorName, minorName, displayOrder } = body;
 
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return NextResponse.json({ error: "카테고리 이름이 필요합니다" }, { status: 400 });
+    if (
+      !code || typeof code !== "string" || !code.trim() ||
+      !majorName || typeof majorName !== "string" || !majorName.trim() ||
+      !minorName || typeof minorName !== "string" || !minorName.trim()
+    ) {
+      return NextResponse.json(
+        { error: "code, majorName, minorName이 모두 필요합니다" },
+        { status: 400 }
+      );
     }
 
     const [inserted] = await db
       .insert(categories)
-      .values({ name: name.trim(), displayOrder: displayOrder ?? 0 })
+      .values({
+        code: code.trim(),
+        majorName: majorName.trim(),
+        minorName: minorName.trim(),
+        displayOrder: displayOrder ?? 0,
+      })
       .returning();
 
     return NextResponse.json(inserted, { status: 201 });

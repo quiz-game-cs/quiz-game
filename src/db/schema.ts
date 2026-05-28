@@ -10,10 +10,9 @@ export const categories = pgTable(
   "categories",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    code: text("code").unique(),
-    majorName: text("major_name"),
-    minorName: text("minor_name"),
-    name: text("name").unique(),
+    code: text("code").notNull().unique(),
+    majorName: text("major_name").notNull(),
+    minorName: text("minor_name").notNull(),
     displayOrder: integer("display_order").default(0),
     createdAt: timestamp("created_at").defaultNow(),
   },

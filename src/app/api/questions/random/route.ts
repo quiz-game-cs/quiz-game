@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         text: questions.text,
         answers: questions.answers,
         categoryId: questions.categoryId,
-        categoryName: categories.name,
+        categoryName: categories.minorName,
         difficulty: questions.difficulty,
         status: questions.status,
       })

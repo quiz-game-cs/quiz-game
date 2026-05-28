@@ -1,6 +1,8 @@
 export interface Category {
   id: string;
-  name: string;
+  code: string;
+  majorName: string;
+  minorName: string;
   displayOrder: number;
 }
 
