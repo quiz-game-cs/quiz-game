@@ -1,27 +1,40 @@
 import { pgTable, uuid, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 
-export const categories = pgTable("categories", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull().unique(),
-  displayOrder: integer("display_order").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const questions = pgTable("questions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  text: text("text").notNull(),
-  answers: text("answers").array().notNull(),
-  categoryId: uuid("category_id").references(() => categories.id),
-  difficulty: integer("difficulty").default(1),
-  status: text("status").default("approved"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   nickname: text("nickname").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const categories = pgTable(
+  "categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").unique(),
+    majorName: text("major_name"),
+    minorName: text("minor_name"),
+    name: text("name").unique(),
+    displayOrder: integer("display_order").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("idx_categories_major_name").on(table.majorName)]
+);
+
+export const questions = pgTable(
+  "questions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    text: text("text").notNull(),
+    answers: text("answers").array().notNull(),
+    closeAnswers: text("close_answers").array().default([]),
+    categoryId: uuid("category_id").references(() => categories.id),
+    authorId: uuid("author_id").references(() => users.id),
+    difficulty: integer("difficulty").default(1),
+    status: text("status").default("approved"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("idx_questions_author_id").on(table.authorId)]
+);
 
 export const playRecords = pgTable(
   "play_records",
