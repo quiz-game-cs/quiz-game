@@ -72,7 +72,7 @@ export function useSoloGame(currentUser: SessionUser) {
   }, [clearAllTimers]);
 
   const loadQuestion = useCallback(async (): Promise<Question | null> => {
-    const res = await fetch(`/api/questions/random?count=1`);
+    const res = await fetch(`/api/questions/random?count=1&authorNickname=inseop`);
     if (!res.ok) return null;
     const data = await res.json();
     return data?.text ? data : null;
