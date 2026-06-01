@@ -25,6 +25,7 @@ export default function GhostBattlePickerPage() {
     if (userLoading) return;
     const params = new URLSearchParams();
     if (user) params.set("excludeUserId", user.id);
+    params.set("authorNickname", "inseop");
     setLoading(true);
     fetch(`/api/users/playable-opponents?${params.toString()}`)
       .then((r) => r.json())
