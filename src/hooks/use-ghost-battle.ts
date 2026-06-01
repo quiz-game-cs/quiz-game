@@ -141,6 +141,9 @@ export function useGhostBattle(rounds: RoundData[], currentUser: SessionUser) {
   const buzzTimeRef = useRef<number>(0);
   const pausedAtRef = useRef<number | null>(null);
   const fullRevealAtRef = useRef<number>(0);
+  // 멈춤(opp-buzz-pause) 도중에 사용자가 부저를 눌렀는지 기록.
+  // true면 멈춤 끝나는 순간 자동으로 답 입력 phase 진입.
+  const bufferedBuzzRef = useRef<boolean>(false);
 
   const clearTimers = useCallback(() => {
     if (revealTimer.current) clearInterval(revealTimer.current);
@@ -240,12 +243,47 @@ export function useGhostBattle(rounds: RoundData[], currentUser: SessionUser) {
             if (revealTimer.current) clearInterval(revealTimer.current);
             revealTimer.current = null;
             pausedAtRef.current = Date.now();
-            // OPP_BUZZ_PAUSE_MS 후에 reveal 재개
+            bufferedBuzzRef.current = false;
+            // OPP_BUZZ_PAUSE_MS 후에 reveal 재개 또는 자동 답 입력 phase 진입
             oppBuzzPauseTimer.current = setTimeout(() => {
-              if (pausedAtRef.current != null) {
-                startTimeRef.current += Date.now() - pausedAtRef.current;
-                pausedAtRef.current = null;
+              const pauseStart = pausedAtRef.current ?? Date.now();
+              const buffered = bufferedBuzzRef.current;
+              bufferedBuzzRef.current = false;
+              pausedAtRef.current = null;
+
+              if (buffered) {
+                // 멈춤 중에 부저를 누른 경우 — 고스트와 거의 동시로 인정.
+                // buzz_time은 멈춤 시작 시점으로 (멈춤 시간 미포함). 고스트 buzz_time과
+                // 거의 같으므로 점수 계산에서 보통 상대가 +2, 나는 +1이 된다.
+                const buzzMs = pauseStart - startTimeRef.current;
+                buzzTimeRef.current = Date.now();
+
+                if (answerTimer.current) clearInterval(answerTimer.current);
+                answerTimer.current = setInterval(() => {
+                  setState((s) => {
+                    const left = Math.max(
+                      0,
+                      ANSWER_TIME_LIMIT_MS - (Date.now() - buzzTimeRef.current)
+                    );
+                    if (left <= 0 && answerTimer.current)
+                      clearInterval(answerTimer.current);
+                    return { ...s, answerTimeLeft: left };
+                  });
+                }, 50);
+
+                setState((s) => ({
+                  ...s,
+                  phase: "buzzed",
+                  buzzTimeMs: buzzMs,
+                  buzzCharIndex: s.revealedCount,
+                  answerTimeLeft: ANSWER_TIME_LIMIT_MS,
+                }));
+                return;
               }
+
+              // 멈춤 중 부저 시도가 없었던 경우: startTime을 멈춤 시간만큼 보정하고
+              // reveal 재개. 사용자 buzz_time은 reveal 활성 시간 기준으로 정확.
+              startTimeRef.current += Date.now() - pauseStart;
               setState((s) => ({ ...s, phase: "revealing" }));
               startRevealLoop(round, CHAR_INTERVAL_MS, onComplete);
             }, OPP_BUZZ_PAUSE_MS);
@@ -400,16 +438,17 @@ export function useGhostBattle(rounds: RoundData[], currentUser: SessionUser) {
 
   const buzz = useCallback(() => {
     setState((prev) => {
-      if (
-        prev.phase !== "revealing" &&
-        prev.phase !== "awaiting-buzz" &&
-        prev.phase !== "opp-buzz-pause"
-      ) {
+      // 멈춤 중에 부저를 누른 경우: 입력 phase로 바로 가지 않고 buffer만 한다.
+      // 멈춤이 끝나는 순간 자동으로 답 입력 phase로 전환됨 (startRevealLoop의 oppBuzzPauseTimer
+      // 콜백 참조).
+      if (prev.phase === "opp-buzz-pause") {
+        bufferedBuzzRef.current = true;
         return prev;
       }
-      // 멈춤 중에도 부저 가능 — 단 buzz_time은 멈춤 끝났을 때 기준 (startTime이 멈춤 끝나면 조정됨)
-      // 일단 멈춤 중엔 부저 무시 (간단함)
-      if (prev.phase === "opp-buzz-pause") return prev;
+
+      if (prev.phase !== "revealing" && prev.phase !== "awaiting-buzz") {
+        return prev;
+      }
 
       if (revealTimer.current) clearInterval(revealTimer.current);
       if (autoPassTimer.current) clearInterval(autoPassTimer.current);
