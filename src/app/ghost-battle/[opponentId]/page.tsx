@@ -249,92 +249,57 @@ function RoundResultPanel({
 }: {
   result: NonNullable<ReturnType<typeof useGhostBattle>["state"]["lastResult"]>;
 }) {
-  const fmt = (ms: number | null) =>
-    ms == null ? "-" : `${(ms / 1000).toFixed(2)}초`;
-  const totalMs = (b: number | null, a: number | null) =>
-    b == null || a == null ? null : b + a;
-
   return (
-    <div className="w-full max-w-md mx-auto rounded-2xl bg-gray-900 border border-gray-800 p-4 space-y-3">
+    <div className="w-full max-w-md mx-auto rounded-2xl bg-gray-900 border border-gray-800 p-5 space-y-5">
       <div className="text-center">
         <div className="text-xs text-gray-500 mb-1">정답</div>
-        <div className="text-white font-bold">{result.question.answers[0]}</div>
+        <div className="text-white font-bold text-lg">
+          {result.question.answers[0]}
+        </div>
       </div>
 
-      <div className="border-t border-gray-800" />
+      <div className="grid grid-cols-2 gap-3">
+        <ResultSide
+          label="나"
+          accent="text-blue-400"
+          isCorrect={result.me.isCorrect}
+          points={result.myPoints}
+        />
+        <ResultSide
+          label="상대"
+          accent="text-purple-400"
+          isCorrect={result.opponent.isCorrect}
+          points={result.oppPoints}
+        />
+      </div>
 
-      <Row
-        label="나"
-        accent="text-blue-400"
-        isCorrect={result.me.isCorrect}
-        buzz={result.me.buzzTimeMs}
-        ans={result.me.answerTimeMs}
-        total={totalMs(result.me.buzzTimeMs, result.me.answerTimeMs)}
-        points={result.myPoints}
-        formatter={fmt}
-        answer={result.me.answer}
-      />
-      <Row
-        label="상대"
-        accent="text-purple-400"
-        isCorrect={result.opponent.isCorrect}
-        buzz={result.opponent.buzzTimeMs}
-        ans={result.opponent.answerTimeMs}
-        total={totalMs(result.opponent.buzzTimeMs, result.opponent.answerTimeMs)}
-        points={result.oppPoints}
-        formatter={fmt}
-        answer={null}
-      />
-
-      <div className="border-t border-gray-800" />
-
-      <div className="flex justify-between text-sm font-mono">
-        <span className="text-blue-400">스코어 {result.myScoreAfter}</span>
-        <span className="text-purple-400">: {result.oppScoreAfter}</span>
+      <div className="flex justify-center items-center gap-3 text-xl font-mono pt-2 border-t border-gray-800">
+        <span className="text-blue-400 font-bold">{result.myScoreAfter}</span>
+        <span className="text-gray-600">:</span>
+        <span className="text-purple-400 font-bold">{result.oppScoreAfter}</span>
       </div>
     </div>
   );
 }
 
-function Row({
+function ResultSide({
   label,
   accent,
   isCorrect,
-  buzz,
-  ans,
-  total,
   points,
-  formatter,
-  answer,
 }: {
   label: string;
   accent: string;
   isCorrect: boolean;
-  buzz: number | null;
-  ans: number | null;
-  total: number | null;
   points: number;
-  formatter: (ms: number | null) => string;
-  answer: string | null;
 }) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <div className="flex flex-col">
-        <span className={`font-bold ${accent}`}>
-          {label} {isCorrect ? "✅" : "❌"}
-          {points > 0 && <span className="ml-1 text-yellow-300">+{points}</span>}
-        </span>
-        {answer != null && (
-          <span className="text-gray-500 text-xs truncate max-w-[140px]">
-            "{answer || "(빈 답)"}"
-          </span>
-        )}
-      </div>
-      <div className="text-right text-gray-400 font-mono text-xs">
-        {formatter(buzz)} + {formatter(ans)}
-        <br />
-        <span className="text-gray-500">= {formatter(total)}</span>
-      </div>
+    <div className="flex flex-col items-center gap-1 py-3">
+      <span className={`text-sm font-bold ${accent}`}>{label}</span>
+      <span className="text-5xl">{isCorrect ? "✅" : "❌"}</span>
+      <span className="text-lg font-black text-yellow-300 min-h-[1.75rem]">
+        {points > 0 ? `+${points}` : " "}
+      </span>
     </div>
   );
 }

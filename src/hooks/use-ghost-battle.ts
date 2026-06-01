@@ -74,23 +74,25 @@ type State = {
   isOver: boolean;
 };
 
+// 빠르기 비교는 buzz_time만으로. 더 빨리 부저를 누른 쪽이 "먼저 맞춤"이며 +2,
+// 늦은 쪽이라도 정답을 적었으면 +1.
 function calcRoundPoints(
-  me: { isCorrect: boolean; buzzTimeMs: number | null; answerTimeMs: number | null },
+  me: { isCorrect: boolean; buzzTimeMs: number | null },
   opp: OpponentRecord
 ) {
-  const meTotal =
-    me.isCorrect && me.buzzTimeMs != null && me.answerTimeMs != null
-      ? me.buzzTimeMs + me.answerTimeMs
+  const meBuzz =
+    me.isCorrect && me.buzzTimeMs != null
+      ? me.buzzTimeMs
       : Number.POSITIVE_INFINITY;
-  const oppTotal =
-    opp.isCorrect && opp.buzzTimeMs != null && opp.answerTimeMs != null
-      ? opp.buzzTimeMs + opp.answerTimeMs
+  const oppBuzz =
+    opp.isCorrect && opp.buzzTimeMs != null
+      ? opp.buzzTimeMs
       : Number.POSITIVE_INFINITY;
 
   let myPoints = 0;
   let oppPoints = 0;
   if (me.isCorrect && opp.isCorrect) {
-    if (meTotal <= oppTotal) {
+    if (meBuzz <= oppBuzz) {
       myPoints = 2;
       oppPoints = 1;
     } else {
