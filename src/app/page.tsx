@@ -56,6 +56,18 @@ export default function Home() {
               혼자 풀고 닉네임으로 기록 쌓기
             </span>
           </Link>
+          <Link
+            href="/ghost-battle"
+            className="group relative block px-8 py-5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600
+              rounded-2xl text-lg font-black transition-all text-center
+              shadow-lg shadow-purple-900/30 hover:shadow-purple-800/40 hover:scale-[1.02]"
+          >
+            <span className="text-2xl mr-2">👻</span>
+            고스트 대전
+            <span className="block text-xs font-normal text-purple-200/60 mt-1">
+              다른 사용자의 기록과 1:1 대전
+            </span>
+          </Link>
         </div>
 
         {/* Rules summary */}
