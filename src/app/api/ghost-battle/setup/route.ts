@@ -8,6 +8,7 @@ const ROUNDS = 10;
 export async function GET(request: NextRequest) {
   try {
     const opponentId = request.nextUrl.searchParams.get("opponentId");
+    const authorNickname = request.nextUrl.searchParams.get("authorNickname");
     if (!opponentId) {
       return NextResponse.json(
         { error: "opponentId가 필요합니다" },
@@ -56,7 +57,13 @@ export async function GET(request: NextRequest) {
         opp_latest.normalized_answer AS "oppNormalizedAnswer"
       FROM opp_latest
       JOIN questions q ON q.id = opp_latest.question_id
+      ${
+        authorNickname
+          ? sql`JOIN users author ON author.id = q.author_id`
+          : sql``
+      }
       WHERE q.status = 'approved'
+      ${authorNickname ? sql`AND author.nickname = ${authorNickname}` : sql``}
       ORDER BY random()
       LIMIT ${ROUNDS}
     `);

@@ -34,7 +34,7 @@ export default function GhostBattleMatchPage({
     if (userLoading) return;
     setLoading(true);
     setError(null);
-    fetch(`/api/ghost-battle/setup?opponentId=${opponentId}`)
+    fetch(`/api/ghost-battle/setup?opponentId=${opponentId}&authorNickname=inseop`)
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
