@@ -28,6 +28,8 @@
 | [[set-018]] | 윤문대기 (Claude) |
 | [[set-019]] | 윤문대기 (Claude) |
 | [[set-020]] | 윤문대기 (Claude) |
+| [[set-021]] | 윤문대기 (Claude) |
+| [[set-022]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
