@@ -42,6 +42,8 @@
 | [[set-032]] | 윤문대기 (Claude) |
 | [[set-033]] | 윤문대기 (Claude) |
 | [[set-034]] | 윤문대기 (Claude) |
+| [[set-035]] | 윤문대기 (Claude) |
+| [[set-036]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
