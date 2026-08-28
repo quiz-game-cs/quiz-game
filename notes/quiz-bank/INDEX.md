@@ -80,6 +80,8 @@
 | [[set-070]] | 윤문대기 (Claude) |
 | [[set-071]] | 윤문대기 (Claude) |
 | [[set-072]] | 윤문대기 (Claude) |
+| [[set-073]] | 윤문대기 (Claude) |
+| [[set-074]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
