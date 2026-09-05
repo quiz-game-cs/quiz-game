@@ -96,6 +96,8 @@
 | [[set-086]] | 윤문대기 (Claude) |
 | [[set-087]] | 윤문대기 (Claude) |
 | [[set-088]] | 윤문대기 (Claude) |
+| [[set-089]] | 윤문대기 (Claude) |
+| [[set-090]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
