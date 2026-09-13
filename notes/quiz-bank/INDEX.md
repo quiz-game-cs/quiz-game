@@ -112,6 +112,8 @@
 | [[set-102]] | 윤문대기 (Claude) |
 | [[set-103]] | 윤문대기 (Claude) |
 | [[set-104]] | 윤문대기 (Claude) |
+| [[set-105]] | 윤문대기 (Claude) |
+| [[set-106]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
