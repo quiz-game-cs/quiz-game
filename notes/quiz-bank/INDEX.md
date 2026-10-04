@@ -154,6 +154,8 @@
 | [[set-144]] | 윤문대기 (Claude) |
 | [[set-145]] | 윤문대기 (Claude) |
 | [[set-146]] | 윤문대기 (Claude) |
+| [[set-147]] | 윤문대기 (Claude) |
+| [[set-148]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
