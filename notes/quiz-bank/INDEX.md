@@ -160,6 +160,8 @@
 | [[set-150]] | 윤문대기 (Claude) |
 | [[set-151]] | 윤문대기 (Claude) |
 | [[set-152]] | 윤문대기 (Claude) |
+| [[set-153]] | 윤문대기 (Claude) |
+| [[set-154]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
