@@ -190,6 +190,8 @@
 | [[set-180]] | 윤문대기 (Claude) |
 | [[set-181]] | 윤문대기 (Claude) |
 | [[set-182]] | 윤문대기 (Claude) |
+| [[set-183]] | 윤문대기 (Claude) |
+| [[set-184]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
