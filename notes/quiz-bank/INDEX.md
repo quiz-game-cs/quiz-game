@@ -212,6 +212,8 @@
 | [[set-202]] | 윤문대기 (Claude) |
 | [[set-203]] | 윤문대기 (Claude) |
 | [[set-204]] | 윤문대기 (Claude) |
+| [[set-205]] | 윤문대기 (Claude) |
+| [[set-206]] | 윤문대기 (Claude) |
 | [[set-501]] | 윤문대기 (Codex) |
 | [[set-502]] | 윤문대기 (Codex) |
 
